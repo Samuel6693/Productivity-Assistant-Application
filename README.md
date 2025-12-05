@@ -38,12 +38,10 @@ Inloggning (Endast VG)
 
 - Varje användare ska ha tillgång till alla sina ärenden, rutiner och händelser den skapat när den loggar in.
 
-<<<<<Startsida>>>>>
+<Startsida>
 Visa ut en översikt över applikationen. Följande ska visas ut.
     - De tre senaste ej utförda ärenden som användaren lagt till. Länk för att navigera till lista med samtliga ärenden.
-
     - De tre rutiner med högst antal repetitioner. Länk för att navigera till lista med samtliga rutiner.
-
     - De tre nästkommande händelserna. Länk för att navigera till lista med samtliga händelser.
 
 
