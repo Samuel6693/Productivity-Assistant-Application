@@ -4,7 +4,7 @@ const HomePage = () => {
             <h1>Dashboard</h1>
             <section>
                 <h2>Senaste ärenden</h2>
-                {/* Här visas de senaste todos du har arbetat med. */}
+                {/* De tre senaste ärendena visas här. */}
             </section>
             <section>
                 <h2>Viktigaste rutiner</h2>
