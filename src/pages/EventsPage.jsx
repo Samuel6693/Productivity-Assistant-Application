@@ -1,6 +1,14 @@
+import { Link } from "react-router-dom";
+
 const EventsPage = () => {
     return (
-        <h2>Event Page</h2>
+        <>
+            <h1>Event Page</h1>
+            <nav>
+                <Link to="/"><h2>Översikt</h2></Link>
+            </nav>
+        
+        </>
     )
 }
 export default EventsPage;

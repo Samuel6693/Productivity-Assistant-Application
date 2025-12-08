@@ -1,7 +1,17 @@
-const HabbitPage = () => {
+import { Link } from "react-router-dom";
+
+Link
+const HabitsPage = () => {
     return (
-        <h2>Habbits <Page></Page></h2>
+        <>
+            <nav>
+                <h1>Habbits</h1>
+                <Link to="/"><h2>Översikt</h2></Link>
+            </nav>
+        </>
+        
+        
     )
 }
 
-export default HabbitPage;
+export default HabitsPage;

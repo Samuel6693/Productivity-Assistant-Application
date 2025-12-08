@@ -1,8 +1,15 @@
+import { Link } from "react-router-dom";
+
 const TodosPage = () => {
     return (
-        <> 
-        <h2> Todo Page</h2>
+        <>
+            <h1>Todo Page</h1>
+            <nav>
+                <Link to="/"><h2>Översikt</h2></Link>
+            </nav>
+        
         </>
+    
     )
 }
 
