@@ -6,6 +6,7 @@ const EventsPage = () => {
             <h1>Event Page</h1>
             <nav>
                 <Link to="/"><h2>Översikt</h2></Link>
+                <p>hii</p>
             </nav>
         
         </>
