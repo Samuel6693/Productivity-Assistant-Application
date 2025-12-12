@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import "../styles/Events.css";
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -85,6 +86,7 @@ const EventsPage = () => {
           type="datetime-local"
           value={start}
           onChange={(e) => setStart(e.target.value)}
+          onKeyDown={(e) => e.preventDefault()}
         />
 
         <label>Sluttid:</label>
@@ -92,6 +94,7 @@ const EventsPage = () => {
           type="datetime-local"
           value={end}
           onChange={(e) => setEnd(e.target.value)}
+          onKeyDown={(e) => e.preventDefault()}
         />
 
         <button type="submit">
