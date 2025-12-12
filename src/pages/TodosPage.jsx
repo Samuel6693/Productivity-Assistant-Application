@@ -12,31 +12,53 @@ const TodosPage = () => {
     });
 
     const [todoList, setTodoList] = useState([]);
-
+    const [editTodo, setEditTodo] = useState(null); 
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const newTodo = {
-            id: Date.now(),
-            title:todos.title,
-            description:todos.description,
-            timeEstimate: todos.timeEstimate,
-            category:todos.category,
-            deadline:todos.deadline,
-            status: false,
-        }
+            // Edit existing todo
+        if (editTodo !== null) {
+            setTodoList((prevList) =>
+                prevList.map((todo) =>
+                    todo.id === editTodo
+                        ? {
+                              ...todo,
+                              title: todos.title,
+                                description: todos.description,
+                                timeEstimate: todos.timeEstimate,
+                                category: todos.category,
+                                deadline: todos.deadline,
+                          }
+                        : todo
+                )
+            );
+            // lämna redigeringsläget
+            setEditTodo(null);
+        } else {
+            // Lägg till nytt todo
+            const newTodo = {
+                id: Date.now(),
+                title:todos.title,
+                description:todos.description,
+                timeEstimate: todos.timeEstimate,
+                category:todos.category,
+                deadline:todos.deadline,
+                status: false,
+            }
+    
+            setTodoList((prevTodos) => [...prevTodos, newTodo]);
 
-        setTodoList((prevTodos) => [...prevTodos, newTodo]);
 
-        setTodos({
-            title: "",
-            description: "",
-            timeEstimate: "",
-            category: "",
-            deadline: "",
-        });
-
+            // Rensa formuläret
+            setTodos({
+                title: "",
+                description: "",
+                timeEstimate: "",
+                category: "",
+                deadline: "",
+            });
+        }   
     };
 
     const handleCancel = () => {
@@ -47,8 +69,37 @@ const TodosPage = () => {
             category: "", 
             deadline:"",
         });
+        setEditTodo(null);
     };
 
+    const toggleStatus = (id) => {
+        setTodoList((prevList) =>
+            prevList.map((todo) =>
+                todo.id === id ? { ...todo, status: !todo.status} : todo
+            )
+        );
+    };
+
+    const deleteTodo = (id) => {
+        setTodoList((prevList) =>
+            prevList.filter((todo) => todo.id !== id)
+        ); 
+    }; 
+
+    const handleEdit = (id) => {
+        const todoToEdit = todoList.find((todo) => todo.id === id);
+        if (!todoToEdit) return;
+
+        setTodos({
+            title: todoToEdit.title,
+            description:todoToEdit.description,
+            timeEstimate: todoToEdit.timeEstimate,
+            category: todoToEdit.category,
+            deadline: todoToEdit.deadline,
+        });
+
+        setEditTodo(id);
+    }
     
     return (
         <>
@@ -61,7 +112,7 @@ const TodosPage = () => {
             </section>
 
             <section>
-                <h2>Nytt ärende</h2>
+                <h2>{editTodo !== null ? "Redigera ärende" : "Nytt Todo"}</h2>
 
                 <form onSubmit={handleSubmit}>
 
@@ -128,7 +179,7 @@ const TodosPage = () => {
                         onChange={(e) => setTodos({...todos, deadline: e.target.value})}/>
                     <br />
 
-                    <button type="submit">Lägg till</button>
+                    <button type="submit">{editTodo !== null ? "Spara ändrongar" : "Lägg till"}</button>
 
                     <button type="button" onClick={handleCancel}>Avbryt</button>
                 </form>
@@ -145,6 +196,16 @@ const TodosPage = () => {
                         <p>Tidsestimat: {todo.timeEstimate}</p>
                         <p>Kategori: {todo.category}</p>
                         <p>Deadline: {todo.deadline}</p>
+                        <p>Status: {todo.status ? "Slutförd" : "Ej slutförd"}</p>
+
+                        <button onClick={() => toggleStatus(todo.id)}>
+                            {todo.status ? "Markera som ej slutförd" : "Markera som slutförd"}
+                        </button>
+
+                        <button onClick={() => deleteTodo(todo.id)}> Ta bort </button>
+
+                        <button onClick={() => handleEdit(todo.id)}>Redigera</button>
+                        
                     </div>)
                 
                     )}
