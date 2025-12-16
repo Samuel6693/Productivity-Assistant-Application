@@ -17,7 +17,7 @@ const TodoFilters = ({
             </button>
 
             {showFilter && (
-                <div>
+                <div className="filters-panel">
                     <label>
                         Status: {" "}
                         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>

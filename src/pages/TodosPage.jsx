@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import TodoForm from "../components/TodoForm";
 import TodoList from "../components/TodoList";
 import TodoFilters from "../components/TodoFilters";
+import "../styles/Todos.css";
+
 
 const TodosPage = () => {
   const [todos, setTodos] = useState({
@@ -150,7 +152,7 @@ const TodosPage = () => {
 
 
   return (
-    <>
+    <div className="todos-container">
       <section>
         <h1>Todo Page</h1>
 
@@ -199,7 +201,7 @@ const TodosPage = () => {
           handleEdit={handleEdit}
         />
       </section>
-    </>
+    </div>
   );
 };
 
