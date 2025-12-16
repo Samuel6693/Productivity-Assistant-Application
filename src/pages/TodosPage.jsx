@@ -19,6 +19,9 @@ const TodosPage = () => {
   const [showFilter, setShowFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  // Sorting Todos
+  const [sortBy, setSortBy] = useState("none");
+  const [sortDirection, setSortDirection] = useState("asc"); // asc = stigande, desc = fallande
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -105,7 +108,8 @@ const TodosPage = () => {
     setEditTodo(id);
   };
 
-  const visibleTodos = todoList.filter((todo) => {
+  const visibleTodos = [...todoList]
+  .filter((todo) => {
     let statusMatch =
       statusFilter === "all" ||
       (statusFilter === "done" && todo.status) ||
@@ -114,7 +118,35 @@ const TodosPage = () => {
     let categoryMatch =
       categoryFilter === "all" || todo.category === categoryFilter;
     return statusMatch && categoryMatch;
-  });
+  })
+
+  .sort((a, b) => { 
+    if (sortBy === "none") return 0;
+
+    let valueA;
+    let valueB;
+
+    if (sortBy === "deadline") {
+      valueA = new Date(a.deadline).getTime();
+      valueB = new Date(b.deadline).getTime();
+    }
+
+    if (sortBy === "timeEstimate") {
+      const [hoursA, minutesA] = a.timeEstimate.split(":");
+      const [hoursB, minutesB] = b.timeEstimate.split(":");
+      valueA = Number(hoursA) * 60 + Number(minutesA);
+      valueB = Number(hoursB) * 60 + Number(minutesB);
+    }
+
+    if (sortBy === "status") {
+      valueA = Number(a.status);
+      valueB = Number(b.status);
+    }
+
+    return sortDirection === "asc" 
+    ? valueA - valueB // stigande
+    : valueB - valueA; // fallande
+  }); 
 
 
   return (
@@ -137,6 +169,10 @@ const TodosPage = () => {
        setStatusFilter={setStatusFilter}
        categoryFilter={categoryFilter}
        setCategoryFilter={setCategoryFilter}
+       sortBy={sortBy}
+       setSortBy={setSortBy}
+       sortDirection={sortDirection}
+       setSortDirection={setSortDirection}
        
        />
       </section>
