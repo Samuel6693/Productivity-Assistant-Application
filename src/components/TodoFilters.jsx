@@ -1,4 +1,14 @@
-const TodoFilters = ({showFilter, setShowFilter, statusFilter, setStatusFilter, categoryFilter, setCategoryFilter}) => {
+const TodoFilters = ({
+    showFilter, 
+    setShowFilter, 
+    statusFilter, 
+    setStatusFilter, 
+    categoryFilter, 
+    setCategoryFilter, 
+    sortBy, 
+    setSortBy, 
+    sortDirection, 
+    setSortDirection}) => {
 
     return (
         <section>
@@ -30,6 +40,23 @@ const TodoFilters = ({showFilter, setShowFilter, statusFilter, setStatusFilter, 
                             <option value="övrigt">Övrigt</option>
                         </select>
                     </label>
+
+                    <label>
+                        Sortera efter: {" "}
+                        <select value={sortBy} onChange={(e)=> setSortBy(e.target.value)}>
+                            <option value="none">Ingen</option>
+                            <option value="deadline">Deadline</option>
+                            <option value="timeEstimate">Tidsestimat</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </label>
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}>
+                        {sortDirection === "asc" ? "⬆ Stigande" : "⬇ Fallande"}
+                    </button>
+
                 </div>
             )}
         </section>
