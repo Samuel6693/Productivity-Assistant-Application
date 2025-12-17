@@ -6,7 +6,7 @@ import TodoFilters from "../components/TodoFilters";
 import "../styles/Todos.css";
 
 
-const TodosPage = () => {
+const TodosPage = ({ todoList, setTodoList }) => {
   const [todos, setTodos] = useState({
     title: "",
     description: "",
@@ -15,7 +15,6 @@ const TodosPage = () => {
     deadline: "",
   });
 
-  const [todoList, setTodoList] = useState([]); // List av todos
   const [editTodo, setEditTodo] = useState(null); // Editering state
   // Filter states
   const [showFilter, setShowFilter] = useState(false);
