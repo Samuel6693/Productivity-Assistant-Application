@@ -11,6 +11,8 @@ const HabitsPage = () => {
     const [habitList, setHabitList] = useState([]);
     const [editHabit, setEditHabit] = useState(null);
 
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -38,7 +40,7 @@ const HabitsPage = () => {
     const handleCancel = () => {
         setHabit({ title: "", category: "", frequency: "" });
         setEditHabit(null);
-    };
+    };  
 
     const deleteHabit = (id) => {
         setHabitList((prev) => prev.filter((h) => h.id !== id));
@@ -51,21 +53,21 @@ const HabitsPage = () => {
     const handleEdit = (id) => {
         const h = habitList.find((item) => item.id === id);
         if (!h) return;
-        setHabit({ title: h.title, category: h.category, frequency: h.frequency });
+        const categoryValue = h.category || (h.mainCategory ? `${h.mainCategory}${h.subCategory ? ' - ' + h.subCategory : ''}` : "");
+        setHabit({ title: h.title, category: categoryValue, frequency: h.frequency });
         setEditHabit(id);
-    };
+    };  
 
     const upcomingTitles = habitList.map((h) => h.title).join(", ");
 
     return (
         <>
-            <section>
+            <section> 
                 <h1>Habits {habitList.length > 0 && `[${upcomingTitles}]`}</h1>
                 <nav>
                     <Link to="/"><h2>Översikt</h2></Link>
                 </nav>
             </section>
-
             <section>
                 <h2>{editHabit !== null ? "Redigera vana" : "Ny vana"}</h2>
 
@@ -81,18 +83,21 @@ const HabitsPage = () => {
                     <br />
 
                     Kategori: {" "}
-                    <select
+                    <input
+                        list="categoryOptions"
+                        placeholder="Skriv eller välj kategori"
                         required
                         value={habit.category}
                         onChange={(e) => setHabit({ ...habit, category: e.target.value })}
-                    >
-                        <option value="">Välj kategori</option>
-                        <option value="sport">Sport</option>
-                        <option value="hushåll">Hushåll</option>
-                        <option value="måltid">Måltid</option>
-                        <option value="personlig">Personlig</option>
-                        <option value="annat">Övrigt</option>
-                    </select>
+                    />
+
+                    <datalist id="categoryOptions">
+                        <option value="Sport" />
+                        <option value="Hushåll" />
+                        <option value="Måltid" />
+                        <option value="Personlig" />
+                        <option value="Övrigt" />
+                    </datalist>
                     <br />
 
                     Frekvens: {" "}
@@ -119,7 +124,7 @@ const HabitsPage = () => {
                 {habitList.map((h) => (
                     <div key={h.id}>
                         <h2> Titel: {h.title}</h2>
-                        <p>Kategori: {h.category}</p>
+                        <p>Kategori: {h.category || (h.mainCategory ? `${h.mainCategory}${h.subCategory ? ' - ' + h.subCategory : ''}` : "")}</p>
                         <p>Frekvens: {h.frequency}</p>
                         <p>Status: {h.active ? "Aktiv" : "Inaktiv"}</p>
 
