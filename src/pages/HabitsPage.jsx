@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import "../styles/Habits.css";
 
 const HabitsPage = () => {
     const [habit, setHabit] = useState({
         title: "",
         category: "",
         frequency: "",
+        selectedDays: [],
     });
 
     const [habitList, setHabitList] = useState([]);
@@ -29,18 +31,19 @@ const HabitsPage = () => {
                 title: habit.title,
                 category: habit.category,
                 frequency: habit.frequency,
+                selectedDays: habit.selectedDays || [],
                 active: true,
             };
             setHabitList((prev) => [...prev, newHabit]);
         }
 
-        setHabit({ title: "", category: "", frequency: "" });
+        setHabit({ title: "", category: "", frequency: "", selectedDays: [] });
     };
 
     const handleCancel = () => {
-        setHabit({ title: "", category: "", frequency: "" });
+        setHabit({ title: "", category: "", frequency: "", selectedDays: [] });
         setEditHabit(null);
-    };  
+    };   
 
     const deleteHabit = (id) => {
         setHabitList((prev) => prev.filter((h) => h.id !== id));
@@ -53,25 +56,48 @@ const HabitsPage = () => {
     const handleEdit = (id) => {
         const h = habitList.find((item) => item.id === id);
         if (!h) return;
-        const categoryValue = h.category || (h.mainCategory ? `${h.mainCategory}${h.subCategory ? ' - ' + h.subCategory : ''}` : "");
-        setHabit({ title: h.title, category: categoryValue, frequency: h.frequency });
+        setHabit({ title: h.title, category: h.category || "", frequency: h.frequency, selectedDays: h.selectedDays || [] });
         setEditHabit(id);
-    };  
+    };
+
+    // Växla markerad veckodag i den vana som redigeras/skapats i formuläret
+    const toggleDay = (day) => {
+        setHabit((prev) => ({
+            ...prev,
+            selectedDays: prev.selectedDays.includes(day) ? prev.selectedDays.filter((d) => d !== day) : [...prev.selectedDays, day],
+        }));
+    };   
+
+    // Läs in sparade vanor från localStorage när komponenten monteras
+    useEffect(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem("habits")) || [];
+            setHabitList(saved);
+        } catch (e) {
+            setHabitList([]);
+        }
+    }, []);
+
+    // Spara vanor till localStorage varje gång listan ändras
+    useEffect(() => {
+        localStorage.setItem("habits", JSON.stringify(habitList));
+    }, [habitList]);
 
     const upcomingTitles = habitList.map((h) => h.title).join(", ");
 
     return (
-        <>
-            <section> 
-                <h1>Habits {habitList.length > 0 && `[${upcomingTitles}]`}</h1>
+        <div className="habits-container">
+            <section>
+                <h1>Rutiner {habitList.length > 0 }</h1>
                 <nav>
                     <Link to="/"><h2>Översikt</h2></Link>
                 </nav>
             </section>
-            <section>
-                <h2>{editHabit !== null ? "Redigera vana" : "Ny vana"}</h2>
 
-                <form onSubmit={handleSubmit}>
+            <section>
+                <h2>{editHabit !== null ? "Redigera vana" : "Ny Rutin"}</h2>
+
+                <form onSubmit={handleSubmit} className="habit-form">
                     Titel: {" "}
                     <input
                         type="text"
@@ -95,6 +121,9 @@ const HabitsPage = () => {
                         <option value="Sport" />
                         <option value="Hushåll" />
                         <option value="Måltid" />
+                        <option value="Arbete" />
+                        <option value="Studier" />
+                        <option value="Hälsa" />
                         <option value="Personlig" />
                         <option value="Övrigt" />
                     </datalist>
@@ -106,11 +135,25 @@ const HabitsPage = () => {
                         value={habit.frequency}
                         onChange={(e) => setHabit({ ...habit, frequency: e.target.value })}
                     >
-                        <option value="">Välj frekvens</option>
-                        <option value="dagligen">Dagligen</option>
+                        <option value="">Välj återkommande frekvens</option>
                         <option value="veckovis">Veckovis</option>
                         <option value="månadsvis">Månadsvis</option>
+                        <option value="kvartalsvis">Kvartalsvis</option>
                     </select>
+                    <br />
+
+                    <div>
+                      <label style={{display:'block',marginTop:'8px'}}>Välj vilka dagar:</label>
+                      <div className="days-grid">
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Måndag')} onChange={() => toggleDay('Måndag')} /> Mån</label>
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Tisdag')} onChange={() => toggleDay('Tisdag')} /> Tis</label>
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Onsdag')} onChange={() => toggleDay('Onsdag')} /> Ons</label>
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Torsdag')} onChange={() => toggleDay('Torsdag')} /> Tor</label>
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Fredag')} onChange={() => toggleDay('Fredag')} /> Fre</label>
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Lördag')} onChange={() => toggleDay('Lördag')} /> Lör</label>
+                        <label><input type="checkbox" checked={habit.selectedDays.includes('Söndag')} onChange={() => toggleDay('Söndag')} /> Sön</label>
+                      </div>
+                    </div>
                     <br />
 
                     <button type="submit">{editHabit !== null ? "Spara ändringar" : "Lägg till"}</button>
@@ -121,24 +164,29 @@ const HabitsPage = () => {
             <section>
                 <h1>Alla vanor</h1>
                 {habitList.length === 0 && <p>Inga vanor tillgängliga ännu.</p>}
-                {habitList.map((h) => (
-                    <div key={h.id}>
+                <div className="habit-list">
+                  {habitList.map((h) => (
+                    <div key={h.id} className="habit-item">
                         <h2> Titel: {h.title}</h2>
-                        <p>Kategori: {h.category || (h.mainCategory ? `${h.mainCategory}${h.subCategory ? ' - ' + h.subCategory : ''}` : "")}</p>
-                        <p>Frekvens: {h.frequency}</p>
-                        <p>Status: {h.active ? "Aktiv" : "Inaktiv"}</p>
+                        <p className="meta">Kategori: {h.category || '—'}</p>
+                        <p className="meta">Frekvens: {h.frequency}</p>
+                        <p className="meta">Valda dagar: {(h.selectedDays && h.selectedDays.length) ? h.selectedDays.join(', ') : '—'}</p>
+                        <p className="meta">Status: {h.active ? "Aktiv" : "Inaktiv"}</p>
 
-                        <button onClick={() => toggleActive(h.id)}>
-                            {h.active ? "Markera som inaktiv" : "Markera som aktiv"}
-                        </button>
+                        <div style={{marginTop: '10px'}}>
+                          <button onClick={() => toggleActive(h.id)}>
+                              {h.active ? "Markera som inaktiv" : "Markera som aktiv"}
+                          </button>
 
-                        <button onClick={() => deleteHabit(h.id)}>Ta bort</button>
+                          <button onClick={() => deleteHabit(h.id)}>Ta bort</button>
 
-                        <button onClick={() => handleEdit(h.id)}>Redigera</button>
+                          <button onClick={() => handleEdit(h.id)}>Redigera</button>
+                        </div>
                     </div>
-                ))}
+                  ))}
+                </div>
             </section>
-        </>
+        </div>
     )
 }
 
