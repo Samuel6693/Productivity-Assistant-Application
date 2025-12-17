@@ -1,6 +1,7 @@
 const TodoForm = ({ todos, setTodos, handleSubmit, handleCancel, editTodo }) => {
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="todo-form"onSubmit={handleSubmit}>
       Titel:{" "}
       <input
         type="text"
@@ -65,7 +66,7 @@ const TodoForm = ({ todos, setTodos, handleSubmit, handleCancel, editTodo }) => 
 
       <button type="submit">{editTodo !== null ? "Spara ändrongar" : "Lägg till"}</button>
 
-      <button type="button" onClick={handleCancel}>
+      <button type="button" className="secondary-btn" onClick={handleCancel}>
         Avbryt
       </button>
     </form>
