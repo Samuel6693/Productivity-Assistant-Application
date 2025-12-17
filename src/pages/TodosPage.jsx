@@ -1,219 +1,207 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import TodoForm from "../components/TodoForm";
+import TodoList from "../components/TodoList";
+import TodoFilters from "../components/TodoFilters";
+import "../styles/Todos.css";
 
-const TodosPage = () => {
 
-    const [todos, setTodos] = useState({
-        title: "",
-        description: "",
-        timeEstimate: "",
-        category: "",
-        deadline: "",
+const TodosPage = ({ todoList, setTodoList }) => {
+  const [todos, setTodos] = useState({
+    title: "",
+    description: "",
+    timeEstimate: "",
+    category: "",
+    deadline: "",
+  });
+
+  const [editTodo, setEditTodo] = useState(null); // Editering state
+  // Filter states
+  const [showFilter, setShowFilter] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  // Sorting Todos
+  const [sortBy, setSortBy] = useState("none");
+  const [sortDirection, setSortDirection] = useState("asc"); // asc = stigande, desc = fallande
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Edit existing todo
+    if (editTodo !== null) {
+      setTodoList((prevList) =>
+        prevList.map((todo) =>
+          todo.id === editTodo
+            ? {
+                ...todo,
+                title: todos.title,
+                description: todos.description,
+                timeEstimate: todos.timeEstimate,
+                category: todos.category,
+                deadline: todos.deadline,
+              }
+            : todo
+        )
+      );
+
+      // lämna redigeringsläget
+      setEditTodo(null);
+    } else {
+      // Lägg till nytt todo
+      const newTodo = {
+        id: Date.now(),
+        title: todos.title,
+        description: todos.description,
+        timeEstimate: todos.timeEstimate,
+        category: todos.category,
+        deadline: todos.deadline,
+        status: false,
+      };
+
+      setTodoList((prevTodos) => [...prevTodos, newTodo]);
+    }
+
+    // Rensa formuläret (gäller både add och edit)
+    setTodos({
+      title: "",
+      description: "",
+      timeEstimate: "",
+      category: "",
+      deadline: "",
+    });
+  };
+
+  const handleCancel = () => {
+    setTodos({
+      title: "",
+      description: "",
+      timeEstimate: "",
+      category: "",
+      deadline: "",
+    });
+    setEditTodo(null);
+  };
+
+  const toggleStatus = (id) => {
+    setTodoList((prevList) =>
+      prevList.map((todo) =>
+        todo.id === id ? { ...todo, status: !todo.status } : todo
+      )
+    );
+  };
+
+  const deleteTodo = (id) => {
+    setTodoList((prevList) => prevList.filter((todo) => todo.id !== id));
+  };
+
+  const handleEdit = (id) => {
+    const todoToEdit = todoList.find((todo) => todo.id === id);
+    if (!todoToEdit) return;
+
+    setTodos({
+      title: todoToEdit.title,
+      description: todoToEdit.description,
+      timeEstimate: todoToEdit.timeEstimate,
+      category: todoToEdit.category,
+      deadline: todoToEdit.deadline,
     });
 
-    const [todoList, setTodoList] = useState([]);
-    const [editTodo, setEditTodo] = useState(null); 
+    setEditTodo(id);
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+  const visibleTodos = [...todoList]
+  .filter((todo) => {
+    let statusMatch =
+      statusFilter === "all" ||
+      (statusFilter === "done" && todo.status) ||
+      (statusFilter === "undone" && !todo.status);
+      
+    let categoryMatch =
+      categoryFilter === "all" || todo.category === categoryFilter;
+    return statusMatch && categoryMatch;
+  })
 
-            // Edit existing todo
-        if (editTodo !== null) {
-            setTodoList((prevList) =>
-                prevList.map((todo) =>
-                    todo.id === editTodo
-                        ? {
-                              ...todo,
-                              title: todos.title,
-                                description: todos.description,
-                                timeEstimate: todos.timeEstimate,
-                                category: todos.category,
-                                deadline: todos.deadline,
-                          }
-                        : todo
-                )
-            );
-            // lämna redigeringsläget
-            setEditTodo(null);
-        } else {
-            // Lägg till nytt todo
-            const newTodo = {
-                id: Date.now(),
-                title:todos.title,
-                description:todos.description,
-                timeEstimate: todos.timeEstimate,
-                category:todos.category,
-                deadline:todos.deadline,
-                status: false,
-            }
-    
-            setTodoList((prevTodos) => [...prevTodos, newTodo]);
+  .sort((a, b) => { 
+    if (sortBy === "none") return 0;
 
+    let valueA;
+    let valueB;
 
-            // Rensa formuläret
-            setTodos({
-                title: "",
-                description: "",
-                timeEstimate: "",
-                category: "",
-                deadline: "",
-            });
-        }   
-    };
-
-    const handleCancel = () => {
-        setTodos({
-            title: "",
-            description: "",
-            timeEstimate: "",
-            category: "", 
-            deadline:"",
-        });
-        setEditTodo(null);
-    };
-
-    const toggleStatus = (id) => {
-        setTodoList((prevList) =>
-            prevList.map((todo) =>
-                todo.id === id ? { ...todo, status: !todo.status} : todo
-            )
-        );
-    };
-
-    const deleteTodo = (id) => {
-        setTodoList((prevList) =>
-            prevList.filter((todo) => todo.id !== id)
-        ); 
-    }; 
-
-    const handleEdit = (id) => {
-        const todoToEdit = todoList.find((todo) => todo.id === id);
-        if (!todoToEdit) return;
-
-        setTodos({
-            title: todoToEdit.title,
-            description:todoToEdit.description,
-            timeEstimate: todoToEdit.timeEstimate,
-            category: todoToEdit.category,
-            deadline: todoToEdit.deadline,
-        });
-
-        setEditTodo(id);
+    if (sortBy === "deadline") {
+      valueA = new Date(a.deadline).getTime();
+      valueB = new Date(b.deadline).getTime();
     }
-    
-    return (
-        <>
-            <section>
-                <h1>Todo Page</h1>
 
-                <nav>
-                    <Link to="/"><h2>Översikt</h2></Link>
-                </nav>
-            </section>
+    if (sortBy === "timeEstimate") {
+      const [hoursA, minutesA] = a.timeEstimate.split(":");
+      const [hoursB, minutesB] = b.timeEstimate.split(":");
+      valueA = Number(hoursA) * 60 + Number(minutesA);
+      valueB = Number(hoursB) * 60 + Number(minutesB);
+    }
 
-            <section>
-                <h2>{editTodo !== null ? "Redigera ärende" : "Nytt Todo"}</h2>
+    if (sortBy === "status") {
+      valueA = Number(a.status);
+      valueB = Number(b.status);
+    }
 
-                <form onSubmit={handleSubmit}>
+    return sortDirection === "asc" 
+    ? valueA - valueB // stigande
+    : valueB - valueA; // fallande
+  }); 
 
 
-                    Titel: {" "}
-                    <input 
-                        type="text" 
-                        placeholder="Title" 
-                        required 
-                        value={todos.title}
-                        onChange={(e) => setTodos({...todos, title: e.target.value })
-                        }
-                    /> 
-                    <br/>
+  return (
+    <div className="todos-container">
+      <section>
+        <h1>Todo Page</h1>
 
-                    Beskrivning:{" "}
-                    <input
-                        type="text"
-                        placeholder="Beskriv ditt ärende"
-                        required
-                        value={todos.description}
-                        onChange={(e) =>
-                            setTodos({ ...todos, description: e.target.value })
-                        }
-                    />
-                    <br/>
+        <nav>
+          <Link to="/">
+            <h2>Översikt</h2>
+          </Link>
+        </nav>
+      </section>
 
-                    Tidsestimat: {" "}
-                        <input 
-                        type="time" 
-                        placeholder="Tidsestimat"
-                        required
-                        value={todos.timeEstimate}
-                        onChange={(e) => setTodos({...todos, timeEstimate: e.target.value})
-                        }
-                    />
-                    <br />
+      <section>
+       <TodoFilters
+       showFilter ={showFilter}
+       setShowFilter={setShowFilter}
+       statusFilter={statusFilter}
+       setStatusFilter={setStatusFilter}
+       categoryFilter={categoryFilter}
+       setCategoryFilter={setCategoryFilter}
+       sortBy={sortBy}
+       setSortBy={setSortBy}
+       sortDirection={sortDirection}
+       setSortDirection={setSortDirection}
+       
+       />
+      </section>
 
-                    <label> Kategori: {" "}
-                        <select 
-                            name="kategori" 
-                            required
-                            value={todos.category}
-                            onChange={(e) => setTodos({...todos, category: e.target.value})
-                            }>
-                                <option value="">Välj kategori</option>
-                                <option value="hälsa">Hälsa</option>
-                                <option value="hushåll">Hushåll</option>
-                                <option value="jobbrelaterat">Jobbrelaterat</option>
-                                <option value="studier">Studier</option>
-                                <option value="ekonomi">Ekonomi</option>
-                                <option value="nöje">Nöje</option>
-                                <option value="personlig">Personlig</option>
-                                <option value="övrigt ">Övrigt</option>
-                        </select>
-                    </label>
-                    <br />
-                    Deadline: {""}
-                    <input 
-                        type="date" 
-                        placeholder="Deadline"
-                        required
-                        value={todos.deadline}
-                        onChange={(e) => setTodos({...todos, deadline: e.target.value})}/>
-                    <br />
+      <section>
+        <h2>{editTodo !== null ? "Redigera ärende" : "Nytt Todo"}</h2>
 
-                    <button type="submit">{editTodo !== null ? "Spara ändrongar" : "Lägg till"}</button>
+        <TodoForm
+          todos={todos}
+          setTodos={setTodos}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
+          editTodo={editTodo}
+        />
+      </section>
 
-                    <button type="button" onClick={handleCancel}>Avbryt</button>
-                </form>
+      <section>
+        <h1>Alla ärenden</h1>
 
-            </section>
-
-            <section>
-                <h1>Alla ärenden</h1>
-                {todoList.length === 0 && <p>Inga ärenden tillgängliga ännu.</p>}
-                {todoList.map((todo) => (
-                    <div key={todo.id}>    
-                        <h2> Titel: {todo.title}</h2>
-                        <p>Beskrivning: {todo.description}</p>
-                        <p>Tidsestimat: {todo.timeEstimate}</p>
-                        <p>Kategori: {todo.category}</p>
-                        <p>Deadline: {todo.deadline}</p>
-                        <p>Status: {todo.status ? "Slutförd" : "Ej slutförd"}</p>
-
-                        <button onClick={() => toggleStatus(todo.id)}>
-                            {todo.status ? "Markera som ej slutförd" : "Markera som slutförd"}
-                        </button>
-
-                        <button onClick={() => deleteTodo(todo.id)}> Ta bort </button>
-
-                        <button onClick={() => handleEdit(todo.id)}>Redigera</button>
-                        
-                    </div>)
-                
-                    )}
-            </section>
-        
-        </>
-    
-    )
-}
+        <TodoList
+          todoList={visibleTodos}
+          toggleStatus={toggleStatus}
+          deleteTodo={deleteTodo}
+          handleEdit={handleEdit}
+        />
+      </section>
+    </div>
+  );
+};
 
 export default TodosPage;
