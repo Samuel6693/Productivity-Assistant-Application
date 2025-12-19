@@ -3,191 +3,178 @@ import { Link } from "react-router-dom";
 import "../styles/Habits.css";
 
 const HabitsPage = () => {
-    const [habit, setHabit] = useState({
-        title: "",
-        category: "",
-        frequency: "",
-        selectedDays: [],
-    });
+  const [habitList, setHabitList] = useState([]);
+  const [title, setTitle] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [repetitions, setRepetitions] = useState(0);
+  const [editId, setEditId] = useState(null);
 
-    const [habitList, setHabitList] = useState([]);
-    const [editHabit, setEditHabit] = useState(null);
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [sortBy, setSortBy] = useState("repetitions");
+  const [sortOrder, setSortOrder] = useState("desc");
 
+  const PRIORITIES = ["low", "medium", "high"];
 
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("habits")) || [];
+      setHabitList(saved);
+    } catch (e) {
+      setHabitList([]);
+    }
+  }, []);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+  useEffect(() => {
+    localStorage.setItem("habits", JSON.stringify(habitList));
+  }, [habitList]);
 
-        if (editHabit !== null) {
-            setHabitList((prev) =>
-                prev.map((h) =>
-                    h.id === editHabit ? { ...h, ...habit } : h
-                )
-            );
-            setEditHabit(null);
-        } else {
-            const newHabit = {
-                id: Date.now(),
-                title: habit.title,
-                category: habit.category,
-                frequency: habit.frequency,
-                selectedDays: habit.selectedDays || [],
-                active: true,
-            };
-            setHabitList((prev) => [...prev, newHabit]);
-        }
+  const resetForm = () => {
+    setTitle("");
+    setPriority("medium");
+    setRepetitions(0);
+    setEditId(null);
+  };
 
-        setHabit({ title: "", category: "", frequency: "", selectedDays: [] });
+  const validate = () => {
+    if (!title.trim()) return "Titel krävs";
+    if (!PRIORITIES.includes(priority)) return "Ogiltig prioritering";
+    if (repetitions < 0) return "Antal repetitioner måste vara 0 eller större";
+    return null;
+  }; 
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const err = validate();
+    if (err) return alert(err);
+
+    if (editId) {
+      setHabitList((prev) =>
+        prev.map((h) => (h.id === editId ? { ...h, title: title.trim(), priority, repetitions } : h))
+      );
+      resetForm();
+      return;
+    }
+
+    const newHabit = {
+      id: Date.now().toString(),
+      title: title.trim(),
+      priority,
+      repetitions,
     };
+    setHabitList((prev) => [newHabit, ...prev]);
+    resetForm();
+  };
 
-    const handleCancel = () => {
-        setHabit({ title: "", category: "", frequency: "", selectedDays: [] });
-        setEditHabit(null);
-    };   
+  const removeHabit = (id) => setHabitList((prev) => prev.filter((h) => h.id !== id));
+  const inc = (id) =>
+    setHabitList((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: (h.repetitions || 0) + 1 } : h)));
+  const dec = (id) =>
+    setHabitList((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: Math.max(0, (h.repetitions || 0) - 1) } : h)));
+  const reset = (id) => setHabitList((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: 0 } : h)));
 
-    const deleteHabit = (id) => {
-        setHabitList((prev) => prev.filter((h) => h.id !== id));
-    };
+  const startEdit = (id) => {
+    const h = habitList.find((item) => item.id === id);
+    if (!h) return;
+    setTitle(h.title);
+    setPriority(h.priority || "medium");
+    setRepetitions(h.repetitions || 0);
+    setEditId(h.id);
+  };
 
-    const toggleActive = (id) => {
-        setHabitList((prev) => prev.map((h) => h.id === id ? { ...h, active: !h.active } : h));
-    };
+  const filtered = habitList.filter((h) => (filterPriority === "all" ? true : h.priority === filterPriority));
+  const priorityWeight = (p) => (p === "high" ? 3 : p === "medium" ? 2 : 1);
 
-    const handleEdit = (id) => {
-        const h = habitList.find((item) => item.id === id);
-        if (!h) return;
-        setHabit({ title: h.title, category: h.category || "", frequency: h.frequency, selectedDays: h.selectedDays || [] });
-        setEditHabit(id);
-    };
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "repetitions") {
+      return sortOrder === "desc" ? b.repetitions - a.repetitions : a.repetitions - b.repetitions;
+    }
+    return sortOrder === "desc" ? priorityWeight(b.priority) - priorityWeight(a.priority) : priorityWeight(a.priority) - priorityWeight(b.priority);
+  });
 
-    // Växla markerad veckodag i den vana som redigeras/skapats i formuläret
-    const toggleDay = (day) => {
-        setHabit((prev) => ({
-            ...prev,
-            selectedDays: prev.selectedDays.includes(day) ? prev.selectedDays.filter((d) => d !== day) : [...prev.selectedDays, day],
-        }));
-    };   
+  return (
+    <div className="habits-page">
+      <section className="habits-header">
+        <h1>Rutiner</h1>
+        <Link to="/">Översikt</Link>
+      </section>
 
-    // Läs in sparade vanor från localStorage när komponenten monteras
-    useEffect(() => {
-        try {
-            const saved = JSON.parse(localStorage.getItem("habits")) || [];
-            setHabitList(saved);
-        } catch (e) {
-            setHabitList([]);
-        }
-    }, []);
+      <section>
+        <h2>{editId ? "Redigera rutin" : "Ny rutin"}</h2>
 
-    // Spara vanor till localStorage varje gång listan ändras
-    useEffect(() => {
-        localStorage.setItem("habits", JSON.stringify(habitList));
-    }, [habitList]);
+        <form onSubmit={handleSubmit} className="habit-form">
+          <label> Titel
+            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </label>
 
-    const upcomingTitles = habitList.map((h) => h.title).join(", ");
+          <label> Prioritet
+            <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+              {PRIORITIES.map((p) => (
+                <option key={p} value={p}>
+                  {p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : 'Hög'}
+                </option>
+              ))}
+            </select>
+          </label>
 
-    return (
-        <div className="habits-container">
-            <section>
-                <h1>Rutiner {habitList.length > 0 }</h1>
-                <nav>
-                    <Link to="/"><h2>Översikt</h2></Link>
-                </nav>
-            </section>
+          <label> Repetitioner
+            <input type="number" min="0" value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value || 0))} />
+          </label>
 
-            <section>
-                <h2>{editHabit !== null ? "Redigera vana" : "Ny Rutin"}</h2>
+          <div className="form-actions">
+            <button type="submit">{editId ? "Spara" : "Lägg till"}</button>
+            <button type="button" onClick={resetForm}> Rensa </button>
+          </div>
+        </form>
+      </section>
 
-                <form onSubmit={handleSubmit} className="habit-form">
-                    Titel: {" "}
-                    <input
-                        type="text"
-                        placeholder="Titel"
-                        required
-                        value={habit.title}
-                        onChange={(e) => setHabit({ ...habit, title: e.target.value })}
-                    />
-                    <br />
+      <section className="controls">
+        <label> Filtrera
+          <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
+            <option value="all">Alla</option>
+            {PRIORITIES.map((p) => (
+              <option key={p} value={p}>
+                {p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : 'Hög'}
+              </option>
+            ))}
+          </select>
+        </label>
 
-                    Kategori: {" "}
-                    <input
-                        list="categoryOptions"
-                        placeholder="Skriv eller välj kategori"
-                        required
-                        value={habit.category}
-                        onChange={(e) => setHabit({ ...habit, category: e.target.value })}
-                    />
+        <label> Sortera efter
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="repetitions">Repetitioner</option>
+            <option value="priority">Prioritet</option>
+          </select>
+        </label>
 
-                    <datalist id="categoryOptions">
-                        <option value="Sport" />
-                        <option value="Hushåll" />
-                        <option value="Måltid" />
-                        <option value="Arbete" />
-                        <option value="Studier" />
-                        <option value="Hälsa" />
-                        <option value="Personlig" />
-                        <option value="Övrigt" />
-                    </datalist>
-                    <br />
+        <label>
+          Ordning
+          <button type="button" className="order-btn" onClick={() => setSortOrder((s) => (s === "desc" ? "asc" : "desc"))}>Ordning: {sortOrder === 'desc' ? 'Fallande' : 'Stigande'}</button>
+        </label>
+      </section>
 
-                    Frekvens: {" "}
-                    <select
-                        required
-                        value={habit.frequency}
-                        onChange={(e) => setHabit({ ...habit, frequency: e.target.value })}
-                    >
-                        <option value="">Välj återkommande frekvens</option>
-                        <option value="veckovis">Veckovis</option>
-                        <option value="månadsvis">Månadsvis</option>
-                        <option value="kvartalsvis">Kvartalsvis</option>
-                    </select>
-                    <br />
-
-                    <div>
-                      <label style={{display:'block',marginTop:'8px'}}>Välj vilka dagar:</label>
-                      <div className="days-grid">
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Måndag')} onChange={() => toggleDay('Måndag')} /> Mån</label>
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Tisdag')} onChange={() => toggleDay('Tisdag')} /> Tis</label>
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Onsdag')} onChange={() => toggleDay('Onsdag')} /> Ons</label>
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Torsdag')} onChange={() => toggleDay('Torsdag')} /> Tor</label>
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Fredag')} onChange={() => toggleDay('Fredag')} /> Fre</label>
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Lördag')} onChange={() => toggleDay('Lördag')} /> Lör</label>
-                        <label><input type="checkbox" checked={habit.selectedDays.includes('Söndag')} onChange={() => toggleDay('Söndag')} /> Sön</label>
-                      </div>
-                    </div>
-                    <br />
-
-                    <button type="submit">{editHabit !== null ? "Spara ändringar" : "Lägg till"}</button>
-                    <button type="button" onClick={handleCancel}>Avbryt</button>
-                </form>
-            </section>
-
-            <section>
-                <h1>Alla vanor</h1>
-                {habitList.length === 0 && <p>Inga vanor tillgängliga ännu.</p>}
-                <div className="habit-list">
-                  {habitList.map((h) => (
-                    <div key={h.id} className="habit-item">
-                        <h2> Titel: {h.title}</h2>
-                        <p className="meta">Kategori: {h.category || '—'}</p>
-                        <p className="meta">Frekvens: {h.frequency}</p>
-                        <p className="meta">Valda dagar: {(h.selectedDays && h.selectedDays.length) ? h.selectedDays.join(', ') : '—'}</p>
-                        <p className="meta">Status: {h.active ? "Aktiv" : "Inaktiv"}</p>
-
-                        <div style={{marginTop: '10px'}}>
-                          <button onClick={() => toggleActive(h.id)}>
-                              {h.active ? "Markera som inaktiv" : "Markera som aktiv"}
-                          </button>
-
-                          <button onClick={() => deleteHabit(h.id)}>Ta bort</button>
-
-                          <button onClick={() => handleEdit(h.id)}>Redigera</button>
-                        </div>
-                    </div>
-                  ))}
-                </div>
-            </section>
+      <section>
+        <h2>Alla rutiner</h2>
+        {sorted.length === 0 && <p>Inga rutiner ännu</p>}
+        <div className="habit-list">
+          {sorted.map((h) => (
+            <div key={h.id} className="habit-item">
+              <div className="left">
+                <strong>{h.title}</strong>
+                <div className="meta">Prioritet: {h.priority} • Repetitioner: {h.repetitions}</div>
+              </div>
+              <div className="right">
+                <button onClick={() => inc(h.id)}>+</button>
+                <button onClick={() => dec(h.id)}>-</button>
+                <button onClick={() => reset(h.id)}>Återställ</button>
+                <button onClick={() => startEdit(h.id)}>Redigera</button>
+                <button onClick={() => removeHabit(h.id)}>Ta bort</button>
+              </div>
+            </div>
+          ))}
         </div>
-    )
-}
+      </section> 
+    </div>
+  );
+};
 
 export default HabitsPage;
