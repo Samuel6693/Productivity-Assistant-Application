@@ -54,18 +54,7 @@ const HomePage = ({ todoList }) => {
 
                 <section className="dashboard-section">
                     <h2>Viktigaste rutiner</h2>
-
-             
-                    <div style={{textAlign:'center', marginTop:'6px'}}>
-                      {topHabit ? (
-                        <p>
-                          <strong>Topp:</strong> {topHabit.title} — Repetitioner: {topHabit.repetitions || 0} • Prioritet: {translatePriority(topHabit.priority || 'medium')}
-                        </p>
-                      ) : (
-                        <p>Inga registrerade rutiner än</p>
-                      )}
-                    </div>
-
+                    
                     <div className="top-habits">
                       <TopHabits count={3} />
                       <br />
