@@ -4,12 +4,29 @@ import TopHabits, { translatePriority } from "../components/HabitRanker";
 import useTopHabits from "../components/HabitsPriority";
 
 const HomePage = ({ todoList }) => {
+
+    const [upcomingEvents, setUpcomingEvents] = useState([]);
+
+    useEffect(() => {
+        const saved = JSON.parse(localStorage.getItem("events")) || [];
+
+        const now = new Date();
+
+        const nextThree = saved
+            .filter(ev => new Date(ev.start) >= now) 
+            .sort((a, b) => new Date(a.start) - new Date(b.start)) 
+            .slice(0, 3); // max 3 st
+
+        setUpcomingEvents(nextThree);
+    }, []);
+
+
     const recentTodos = [...todoList]
     .filter((todo) => !todo.status)
     .sort((a, b) => b.id - a.id)
     .slice(0, 3);
 
-    // Hämtar top N och totalen via hook i components/HabitsPriority
+   
     const { top: topHabits, total: habitCount } = useTopHabits(3);
     const topHabit = topHabits && topHabits.length > 0 ? topHabits[0] : null;
 
@@ -38,7 +55,7 @@ const HomePage = ({ todoList }) => {
                 <section className="dashboard-section">
                     <h2>Viktigaste rutiner</h2>
 
-                    {/* Visa en topp-rutin beräknad av rankern */}
+             
                     <div style={{textAlign:'center', marginTop:'6px'}}>
                       {topHabit ? (
                         <p>
@@ -58,14 +75,27 @@ const HomePage = ({ todoList }) => {
 
 
                 <section className="dashboard-section">
-                    <h2> Kommande händelser {/* De tre nästkommande händelserna visas här. */}
-                        <li>1</li>
-                        <li>2</li>
-                        <li>3</li>
-                        <br />
-                        <Link className="dashboard-link" to="/events">Gå till alla händelser</Link>
-                    </h2>
-                </section>  
+                    <h2>Kommande händelser</h2>
+
+                    {upcomingEvents.length === 0 ? (
+                        <p>Inga kommande händelser</p>
+                    ) : (
+                        <ul>
+                        {upcomingEvents.map((ev) => (
+                            <li key={ev.id}>
+                            <strong>{ev.title}</strong><br />
+                            {new Date(ev.start).toLocaleString()}
+                            </li>
+                        ))}
+                        </ul>
+                    )}
+
+                    <br />
+                    <Link className="dashboard-link" to="/events">
+                        Gå till alla händelser
+                    </Link>
+                </section>
+
             </nav>
         </div>
 
