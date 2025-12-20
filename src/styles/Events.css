@@ -75,3 +75,20 @@
   cursor: pointer;
   color: white;
 }
+
+
+
+.events-header {
+  min-width: 450px;  
+  width: auto;       
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+
+
+.events-section {
+  margin-top: 20px;
+}

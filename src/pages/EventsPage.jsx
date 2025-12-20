@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import EventForm from "../components/EventForm";
+import EventFilters from "../components/EventFilters";
+import EventList from "../components/EventList";
 import "../styles/Events.css";
 
 const EventsPage = () => {
-  const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState("all");
-
   const [title, setTitle] = useState("");
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [editId, setEditId] = useState(null);
-
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("events")) || [];
-    setEvents(saved);
-  }, []);
+  
+  const [events, setEvents] = useState(() => {
+    const saved = localStorage.getItem("events");
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     localStorage.setItem("events", JSON.stringify(events));
@@ -23,8 +24,15 @@ const EventsPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title || !start || !end) return alert("Fyll i alla fält");
-    if (new Date(start) >= new Date(end)) return alert("Start måste vara före slut");
+    if (!title || !start || !end) {
+      alert("Fyll i alla fält");
+      return;
+    }
+
+    if (new Date(start) >= new Date(end)) {
+      alert("Start måste vara före slut");
+      return;
+    }
 
     const newEvent = {
       id: editId || crypto.randomUUID(),
@@ -33,28 +41,32 @@ const EventsPage = () => {
       end,
     };
 
-    let updated = editId
+    const updatedEvents = editId
       ? events.map((ev) => (ev.id === editId ? newEvent : ev))
       : [...events, newEvent];
 
-    updated.sort((a, b) => new Date(a.start) - new Date(b.start));
-    setEvents(updated);
+    updatedEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+    setEvents(updatedEvents);
 
+    handleCancel();
+  };
+
+  const handleEdit = (event) => {
+    setTitle(event.title);
+    setStart(event.start);
+    setEnd(event.end);
+    setEditId(event.id);
+  };
+
+  const handleDelete = (id) => {
+    setEvents(events.filter((ev) => ev.id !== id));
+  };
+
+  const handleCancel = () => {
     setTitle("");
     setStart("");
     setEnd("");
     setEditId(null);
-  };
-
-  const startEdit = (ev) => {
-    setTitle(ev.title);
-    setStart(ev.start);
-    setEnd(ev.end);
-    setEditId(ev.id);
-  };
-
-  const deleteEvent = (id) => {
-    setEvents(events.filter((ev) => ev.id !== id));
   };
 
   const now = new Date();
@@ -66,62 +78,47 @@ const EventsPage = () => {
 
   return (
     <div className="events-container">
-      <h1>Event Planner</h1>
+      <section className="events-header">
+        <h1>Event Planner</h1>
 
-      <nav>
-        <Link to="/"><h2>Översikt</h2></Link>
-      </nav>
+        <nav>
+          <Link to="/">
+            <h2>Översikt</h2>
+          </Link>
+        </nav>
+      </section>
 
-      <form onSubmit={handleSubmit} className="event-form">
-        <h2>{editId ? "Redigera händelse" : "Skapa händelse"}</h2>
+      <section className="events-section">
+        <h2>{editId ? "Redigera händelse" : "Ny händelse"}</h2>
 
-        <input
-          placeholder="Titel"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+        <EventForm
+          title={title}
+          start={start}
+          end={end}
+          editId={editId}
+          setTitle={setTitle}
+          setStart={setStart}
+          setEnd={setEnd}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
         />
+      </section>
 
-        <label>Starttid:</label>
-        <input
-          type="datetime-local"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-          onKeyDown={(e) => e.preventDefault()}
+      <section className="events-section">
+        <h2>Filter</h2>
+        <EventFilters filter={filter} setFilter={setFilter} />
+      </section>
+
+      <section className="events-section">
+        <h2>Alla händelser</h2>
+        <p>Antal events: {filteredEvents.length}</p>
+
+        <EventList
+          events={filteredEvents}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
-
-        <label>Sluttid:</label>
-        <input
-          type="datetime-local"
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-          onKeyDown={(e) => e.preventDefault()}
-        />
-
-        <button type="submit">
-          {editId ? "Spara ändringar" : "Lägg till"}
-        </button>
-      </form>
-
-      <div className="filter-buttons">
-        <button onClick={() => setFilter("all")}>Alla</button>
-        <button onClick={() => setFilter("upcoming")}>Kommande</button>
-        <button onClick={() => setFilter("past")}>Tidigare</button>
-      </div>
-
-      <ul className="event-list">
-        {filteredEvents.map((ev) => {
-          const isPast = new Date(ev.end) < now;
-          return (
-            <li key={ev.id} className={`event-item ${isPast ? "past" : ""}`}>
-              <strong>{ev.title}</strong><br />
-              Start: {new Date(ev.start).toLocaleString()}<br />
-              Slut: {new Date(ev.end).toLocaleString()}<br />
-              <button onClick={() => startEdit(ev)}>Redigera</button>
-              <button onClick={() => deleteEvent(ev.id)}>Ta bort</button>
-            </li>
-          );
-        })}
-      </ul>
+      </section>
     </div>
   );
 };
