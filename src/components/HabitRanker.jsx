@@ -8,7 +8,7 @@ const computeScore = (h) => {
   return reps * priorityWeight(h.priority || "medium");
 };
 
-export const translatePriority = (p) => (p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : 'Hög');
+export const translatePriority = (p) => (p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : p === 'high' ? 'Hög' : p);
 
 export const getTopHabits = (count = 3) => {
   try {
@@ -36,14 +36,14 @@ const TopHabits = ({ count = 3 }) => {
   }, [count]);
 
   if (!top || top.length === 0) {
-    return <ul><li>Inga registrerade rutiner än</li></ul>;
+    return <ul><p>Inga registrerade rutiner än</p></ul>;
   }
 
   return (
     <ul>
       {top.map((h) => (
         <li key={h.id}>
-          <strong>{h.title}</strong> — Repetitioner: {h.repetitions || 0} • Prioritet: {translatePriority(h.priority || 'medium')}
+          <strong>{h.title}</strong> — Reps: {h.repetitions || 0} • Prio: {translatePriority(h.priority || 'medium')}
         </li>
       ))}
     </ul>

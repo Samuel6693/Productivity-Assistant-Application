@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getTopHabits } from "./HabitRanker";
 
-// Custom hook för att hämta top N rutiner och totalen av registrerade rutiner
+// Custom hook för att hämta top N(antal) rutiner och totalen av registrerade rutiner
 export default function useTopHabits(count = 3) {
   const [top, setTop] = useState([]);
   const [total, setTotal] = useState(0);
