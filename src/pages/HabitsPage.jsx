@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/Habits.css";
 
-const HabitsPage = () => {
-  const [habitList, setHabitList] = useState([]);
+const HabitsPage = ({ habits = [], setHabits = () => {} }) => {
+  const habitList = habits;
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("medium");
   const [repetitions, setRepetitions] = useState(0);
@@ -15,18 +15,7 @@ const HabitsPage = () => {
 
   const PRIORITIES = ["low", "medium", "high"];
 
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem("habits")) || [];
-      setHabitList(saved);
-    } catch (e) {
-      setHabitList([]);
-    }
-  }, []);
 
-  useEffect(() => {
-    localStorage.setItem("habits", JSON.stringify(habitList));
-  }, [habitList]);
 
   const resetForm = () => {
     setTitle("");
@@ -48,7 +37,7 @@ const HabitsPage = () => {
     if (err) return alert(err);
 
     if (editId) {
-      setHabitList((prev) =>
+      setHabits((prev) =>
         prev.map((h) => (h.id === editId ? { ...h, title: title.trim(), priority, repetitions } : h))
       );
       resetForm();
@@ -61,16 +50,16 @@ const HabitsPage = () => {
       priority,
       repetitions,
     };
-    setHabitList((prev) => [newHabit, ...prev]);
+    setHabits((prev) => [newHabit, ...prev]);
     resetForm();
   };
 
-  const removeHabit = (id) => setHabitList((prev) => prev.filter((h) => h.id !== id));
+  const removeHabit = (id) => setHabits((prev) => prev.filter((h) => h.id !== id));
   const inc = (id) =>
-    setHabitList((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: (h.repetitions || 0) + 1 } : h)));
+    setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: (h.repetitions || 0) + 1 } : h)));
   const dec = (id) =>
-    setHabitList((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: Math.max(0, (h.repetitions || 0) - 1) } : h)));
-  const reset = (id) => setHabitList((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: 0 } : h)));
+    setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: Math.max(0, (h.repetitions || 0) - 1) } : h)));
+  const reset = (id) => setHabits((prev) => prev.map((h) => (h.id === id ? { ...h, repetitions: 0 } : h)));
 
   const startEdit = (id) => {
     const h = habitList.find((item) => item.id === id);
@@ -116,8 +105,15 @@ const HabitsPage = () => {
             </select>
           </label>
 
-          <label> Repetitioner
-            <input type="number" min="0" value={repetitions} onChange={(e) => setRepetitions(Number(e.target.value || 0))} />
+           <label> Repetitioner
+            <input type="number" min="0" value={repetitions}  onChange={(e) => {
+              const value = e.target.value;
+              if (value === "") {
+                setRepetitions("");
+              } else {
+                setRepetitions(Math.max(0, Number(value)));
+              }
+          }} />
           </label>
 
           <div className="form-actions">
@@ -133,7 +129,7 @@ const HabitsPage = () => {
             <option value="all">Alla</option>
             {PRIORITIES.map((p) => (
               <option key={p} value={p}>
-                {p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : 'Hög'}
+                {p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : p === 'high' ? 'Hög' : p}
               </option>
             ))}
           </select>
@@ -146,8 +142,7 @@ const HabitsPage = () => {
           </select>
         </label>
 
-        <label>
-          Ordning
+        <label> Ordning
           <button type="button" className="order-btn" onClick={() => setSortOrder((s) => (s === "desc" ? "asc" : "desc"))}>Ordning: {sortOrder === 'desc' ? 'Fallande' : 'Stigande'}</button>
         </label>
       </section>
