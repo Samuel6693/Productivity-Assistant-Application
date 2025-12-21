@@ -22,6 +22,7 @@
   background: none;
   padding: 0;
   border: none;
+  font-size: 24px;
   
 }
 
@@ -31,7 +32,7 @@
 }
 .habits-page section h2 {
   margin-bottom: 1rem;
-  text-align: left;
+ text-align: center;
 }
 
 .habit-form {
