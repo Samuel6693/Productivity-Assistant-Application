@@ -147,8 +147,7 @@ const TodosPage = ({ todoList, setTodoList }) => {
     return sortDirection === "asc" 
     ? valueA - valueB // stigande
     : valueB - valueA; // fallande
-  }); 
-
+  });
 
   return (
     <div className="todos-container">
@@ -160,6 +159,18 @@ const TodosPage = ({ todoList, setTodoList }) => {
             <h2>Översikt</h2>
           </Link>
         </nav>
+      </section>
+
+      <section>
+        <h2>{editTodo !== null ? "Redigera ärende" : "Nytt Todo"}</h2>
+
+        <TodoForm
+          todos={todos}
+          setTodos={setTodos}
+          handleSubmit={handleSubmit}
+          handleCancel={handleCancel}
+          editTodo={editTodo}
+        />
       </section>
 
       <section>
@@ -176,18 +187,6 @@ const TodosPage = ({ todoList, setTodoList }) => {
        setSortDirection={setSortDirection}
        
        />
-      </section>
-
-      <section>
-        <h2>{editTodo !== null ? "Redigera ärende" : "Nytt Todo"}</h2>
-
-        <TodoForm
-          todos={todos}
-          setTodos={setTodos}
-          handleSubmit={handleSubmit}
-          handleCancel={handleCancel}
-          editTodo={editTodo}
-        />
       </section>
 
       <section>
