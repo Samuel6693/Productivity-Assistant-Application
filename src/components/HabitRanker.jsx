@@ -4,9 +4,9 @@ import React, { useEffect, useState } from "react";
 const priorityWeight = (p) => (p === "high" ? 3 : p === "medium" ? 2 : 1);
 
 const computeScore = (h) => {
-  const reps = Number(h.repetitions || 0);
-  return reps * priorityWeight(h.priority || "medium");
+  return Number(h.repetitions ?? 0);
 };
+
 
 export const translatePriority = (p) => (p === 'low' ? 'Låg' : p === 'medium' ? 'Medel' : p === 'high' ? 'Hög' : p);
 
