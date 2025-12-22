@@ -23,7 +23,7 @@ function App() {
     }
   });
 
-// Spara till localStorage varje gång TodoList ändras
+// Spara Todos till localStorage varje gång TodoList ändras
 useEffect(() => {
   try {
     localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(todoList));
